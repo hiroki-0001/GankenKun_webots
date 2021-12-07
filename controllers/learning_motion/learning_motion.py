@@ -85,16 +85,18 @@ def func(param):#最適化関数の設定
     ball_translation.setSFVec3f([0, 0, 0.1])
     ball_rotation.setSFRotation([0, 0, 1, 0])
 
-#最適化処理
+#最適化処理 この処理ではボールのx方向(ゴールポスト側)への距離の最大化を目指す
     while supervisor.step(time_step) != -1:
         count += 1
         if count > 800:
+            print("break over")
             break
         if count > 800 - 1:
             pos = ball_translation.getSFVec3f()
             with open('result.csv', 'a', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow([param[0], param[1], param[2], param[3], pos[0], pos[1]])
+                print("parameter update")
     return -pos[0]
 
 # main文
@@ -109,5 +111,8 @@ x = (x0, x1, x2, x3)
 
 result = gp_minimize(func, x, n_calls=100, noise=0.0, model_queue_size=1, verbose=True)
 # n_call = サンプリング回数(試行回数) ここの数値分funcの処理を繰り返す。
+# x = 最適化する対象のパラメータ
+# noise =
+# model_queue_size = 
 # verbose = 探索時の標準出力を切り替える
 
