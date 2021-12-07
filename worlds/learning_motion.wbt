@@ -13,7 +13,7 @@ WorldInfo {
   contactProperties [
     ContactProperties {
       material1 "grass"
-      coulombFriction [
+      coulombFriction [ #クーロン摩擦 sim to realをするならここをいじる？
         0.5
       ]
       softCFM 0.03
