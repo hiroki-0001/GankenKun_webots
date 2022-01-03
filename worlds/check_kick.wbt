@@ -45,5 +45,5 @@ TexturedBackgroundLight {
 }
 Robot {
   supervisor TRUE
-  controller "learning"
+  controller "check_kickmotion"
 }
