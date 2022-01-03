@@ -51,7 +51,10 @@ while True:
             index += 1
             if index >= len(data):
                 break
-            delta_angles = [(float(data[index][i+1]) - angles[i])/(float(data[index][0])*0.008) for i in range(len(motors))]
+            try:
+                delta_angles = [(float(data[index][i+1]) - angles[i])/(float(data[index][0])*0.008) for i in range(len(motors))]
+            except ZeroDivisionError:
+                break
             tm += float(data[index][0]) * 0.008
         for i in range(len(motors)):
             angles[i] += delta_angles[i] * 0.008
