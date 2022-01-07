@@ -54,12 +54,15 @@ ball_translation = supervisor.getFromDef('BALL').getField('translation')
 ball_rotation = supervisor.getFromDef('BALL').getField('rotation')
 
 def file_update(ball_pos):
-    with open("./ball_posion.csv", "a") as f:  # motion.csvに上書きする(前の状態から更新される)
-        f.write(str(ball_pos))  # 1行ずつ書き込み
+    with open("./ball_position.csv", "a") as f:
+        f.write(str(ball_pos))
         f.write('\n')
 
+def file_clean():
+    with open("./ball_position.csv", 'w') as f:
+        pass
     
-def main():  # 最適化関数の設定
+def kick_test():  
     global player, ball, children, ball_translation, ball_rotation, supervisor  # グローバル変数の定義
     player.remove()
     children.importMFNodeFromString(-1, f'DEF PLAYER RoboCup_GankenKun {{translation -0.2 0.1 0.450 rotation 0 0 1 0 controller "play_motion" controllerArgs "motion.csv"}}')
@@ -78,11 +81,17 @@ def main():  # 最適化関数の設定
             print(ball_pos[0])
             file_update(ball_pos[0])
 
-trials_num = 0
-while trials_num <= 10:
-    trials_num += 1
+def main():
+    trial_count = 0
+    file_clean()
+    while trial_count < 10:
+        trial_count += 1
+        kick_test()
+        print("{}回目".format(trial_count))
+    print("==== 検証終了 ====")
+
+if __name__ == "__main__":
     main()
-    print(trials_num)
 
 
 
