@@ -3,7 +3,11 @@ import csv
 import math
 import sys
 
-file_name = "./motion.csv"
+#file_name = "./motion.csv"
+#file_name = "./best_kick_human_adjust.csv"
+#file_name = "./after_optimize_motion.csv"
+file_name = "/home/hiroki/code/GankenKun_webots/tool/reverse_kick.csv"
+
 if len(sys.argv) > 1:
     file_name = sys.argv[1]
 csv_file = open(file_name, "r")
