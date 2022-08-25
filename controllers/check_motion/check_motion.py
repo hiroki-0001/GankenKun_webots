@@ -43,28 +43,13 @@ time_step = int(supervisor.getBasicTimeStep())
 field = Field("kid")
 children = supervisor.getRoot().getField('children')
 children.importMFNodeFromString(-1, f'RobocupSoccerField {{ size "kid" }}')
-children.importMFNodeFromString(-1, f'DEF BALL RobocupSoccerBall {{ translation 0 0 0.1 size 1 }}')
-#右キック用
-#children.importMFNodeFromString(-1, f'DEF PLAYER RoboCup_GankenKun {{translation -0.20 0.1 0.450 rotation 0 0 1 0 controller "play_motion"}}')
-#左キック用
 children.importMFNodeFromString(-1, f'DEF PLAYER RoboCup_GankenKun {{translation -0.20 -0.1 0.450 rotation 0 0 1 0 controller "play_motion"}}')
-
 player = supervisor.getFromDef('PLAYER')
-ball = supervisor.getFromDef('BALL')
 player_translation = supervisor.getFromDef('PLAYER').getField('translation')
 player_rotation = supervisor.getFromDef('PLAYER').getField('rotation')
 player_controller = supervisor.getFromDef('PLAYER').getField('controller')
-ball_translation = supervisor.getFromDef('BALL').getField('translation')
-ball_rotation = supervisor.getFromDef('BALL').getField('rotation')
 
-def file_update(ball_pos):
-    with open("./ball_position.csv", "a") as f:
-        f.write(str(ball_pos))
-        f.write('\n')
 
-def file_clean():
-    with open("./ball_position.csv", 'w') as f:
-        pass
     
 def kick_test():  
     global player, ball, children, ball_translation, ball_rotation, supervisor  # グローバル変数の定義
@@ -76,26 +61,16 @@ def kick_test():
 
     player = supervisor.getFromDef('PLAYER')
     player_translation = supervisor.getFromDef('PLAYER').getField('translation')
-    ball.resetPhysics()
-    ball_translation.setSFVec3f([0, 0, 0.1])
-    ball_rotation.setSFRotation([0, 0, 1, 0])
     count = 0
 
     while supervisor.step(time_step) != -1:
         count += 1
         if count > 800:
             break
-        if count > 800 - 1:
-            ball_pos = ball_translation.getSFVec3f()
-            player_pos = player_translation.getSFVec3f()
-            print("ball pos = {}".format(ball_pos))
-            print("player pos = {}".format(player_pos))
-            print(ball_pos[0])
-            file_update(ball_pos[0])
+            
 
 def main():
     trial_count = 0
-    file_clean()
     while trial_count < 10:
         trial_count += 1
         kick_test()

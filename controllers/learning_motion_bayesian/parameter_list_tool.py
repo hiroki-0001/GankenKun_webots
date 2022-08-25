@@ -10,12 +10,12 @@ def get_motiondata():
 
 def main():
     motion_data = get_motiondata()
-    param_range = 10
-    count = 1
+    param_range = 5
+    count = 0
 
-    for frame in range(12):
+    for frame in range(11):
         for servo_num in range(19):
-            print("frame = {}, servo_num = {}".format(frame, servo_num))
+            #print("frame = {}, servo_num = {}".format(frame, servo_num))
             base_data = float(motion_data[frame][servo_num])
             min_data = base_data - param_range
             max_data = base_data + param_range
