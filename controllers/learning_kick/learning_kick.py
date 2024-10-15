@@ -14,8 +14,17 @@ import gym
 from stable_baselines import SAC
 from stable_baselines.sac.policies import MlpPolicy
 
-log_dir = './logs/'
-os.makedirs(log_dir, exist_ok=True)
+def create_incremental_log_dir(base_name="logs"):
+    i = 1
+    while os.path.exists(f"{base_name}{i}"):
+        i += 1
+    new_dir = f"{base_name}{i}"
+    os.makedirs(new_dir)
+    return new_dir
+
+log_dir = create_incremental_log_dir()
+print(f"Created directory: {log_dir}")
+
 
 MOTOR_NAMES = [
     "right_ankle_roll_joint",                       # ID1
@@ -64,6 +73,7 @@ MOTOR_SENSOR_NAMES = [
 DIRECTION = [-1, -1, 1, 1, -1, -1, -1, 1, -1, -1, -1, 1, 1, -1, 1, -1, 1, -1, 1]
 SENSOR_DATA_MAX = 65535
 SENSOR_DATA_MIN = 0
+# センサデータの正規化に使用するパラメータ 正規化は -1 ~ 1の範囲で設定
 SC_MAX = 1
 SC_MIN = -1
 # learning_parameter
@@ -77,6 +87,7 @@ class OpenAIGymEnvironment(Supervisor, gym.Env):
     def __init__(self, max_episode_steps=1000) :
         super().__init__()
         
+        # 行動空間 aの最大値
         action_space_high = np.array(
             [
                 #修正する角度量[deg]
@@ -94,6 +105,7 @@ class OpenAIGymEnvironment(Supervisor, gym.Env):
                 10, 
             ], dtype=np.float32)
         
+        # 状態空間 S の最大値
         observation_space_high = np.array(
             [
                 #加速度 x, y, x
@@ -133,8 +145,8 @@ class OpenAIGymEnvironment(Supervisor, gym.Env):
         )
         
         # OpenAIGym_environmental_preference 
-        self.action_space = gym.spaces.Box(-action_space_high, action_space_high, dtype=np.float32)
-        self.observation_space = gym.spaces.Box(-observation_space_high, observation_space_high, dtype=np.float32)
+        self.action_space = gym.spaces.Box(-action_space_high, action_space_high, dtype=np.float32) # 連続値
+        self.observation_space = gym.spaces.Box(-observation_space_high, observation_space_high, dtype=np.float32) # 連続値
         self.state = np.array([
                                 0, 0, 0, # 加速度 x, y, x
                                 0, 0, 0, # ジャイロ x, y, z
@@ -148,27 +160,27 @@ class OpenAIGymEnvironment(Supervisor, gym.Env):
         self.__motors = []
         self.__motor_angle_sensors = []
         
-                
+        
     def reset(self):
         self.simulationResetPhysics()
         self.simulationReset()
         self.player = self.getFromDef('PLAYER')
         self.player_rotation = self.getFromDef('PLAYER').getField('rotation')
         
-        #motor reset
+        # motor reset
         self.__motors = []
         for name in MOTOR_NAMES:
             self.__motors.append(self.getDevice(name))
-        #motor sensor reset
+        # motor sensor reset
         self.__motor_angle_sensors = []
         for name in MOTOR_SENSOR_NAMES:
             self.__motor_angle_sensors.append(self.getDevice(name)) 
         for name in range (len(MOTOR_SENSOR_NAMES)):
             self.__motor_angle_sensors[name].enable(self.__timestep)
-        #accelerometer reset
+        # accelerometer reset
         self.accelerometer = self.getDevice('accelerometer')
         self.accelerometer.enable(self.__timestep)
-        #gyro sensor reset
+        # gyro sensor reset
         self.gyro = self.getDevice('gyro')
         self.gyro.enable(self.__timestep)
         # motion parameter reset
@@ -176,7 +188,9 @@ class OpenAIGymEnvironment(Supervisor, gym.Env):
         self.tm = 0.0
         self.motion_frame_num = 0
         self.motion_total_time = 0.0
-        self.angles = [np.random.uniform(low=-5.0, high=5.0) for _ in range(len(MOTOR_NAMES))] # ロボットの初期姿勢(各関節軸の角度)をランダムにする
+        # ロボットの初期姿勢(各関節軸の角度)をランダムにする
+        self.angles = [np.random.uniform(low=-5.0, high=5.0) for _ in range(len(MOTOR_NAMES))] 
+        # モーション再生中の補間角度
         self.delta_angles = [0.0] * len(MOTOR_NAMES)     #モーション再生中の補間角度
         self.data = OpenAIGymEnvironment.read_motion_file(self)        
         # learning_parameter
@@ -224,9 +238,9 @@ class OpenAIGymEnvironment(Supervisor, gym.Env):
                     frame_end_flag = True #1フレーム終了のフラグ
                     self.motion_frame_num += 1
                     # Observation
-                    acc_data = self.accelerometer.getValues()    #取得情報は対象のx, y, zの加速度 単位は[]
+                    acc_data = self.accelerometer.getValues()    # 加速度 x, y, z 単位は[]
                     acc_x, acc_y, acc_z= list(map(OpenAIGymEnvironment.Normalization, acc_data)) # 加速度を正規化
-                    gyro_data = self.gyro.getValues()                    #取得情報は対象のx, y, zのジャイロ 単位は[] 
+                    gyro_data = self.gyro.getValues()                    # ジャイロ x, y, z 単位は[] 
                     gyro_x, gyro_y, gyro_z = list(map(OpenAIGymEnvironment.Normalization, gyro_data)) # ジャイロを正規化
                     rot_x, rot_y, rot_z, rot_deg = self.player_rotation.getSFRotation()     #取得情報は対象の姿勢 x, y, z, deg 軸角度表現で表せる  単位は[] 
                     for i in range(len(MOTOR_NAMES)):
